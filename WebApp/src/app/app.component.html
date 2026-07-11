@@ -1,0 +1,130 @@
+<div class="content" role="main">
+  <!-- Barra de herramientas -->
+  <div class="toolbar" role="banner">
+    <img
+      width="180"
+      alt="Blockstellart logo"
+      src="../assets/Blockstellart.png"
+    />
+    <span><p class="title-header"></p></span>
+    <div class="spacer"></div>
+  </div>
+
+  <!-- Input y Botones -->
+  <div class="row justify-content-around mt-3">
+    <div class="col-6 d-flex justify-content-center align-items-center">
+      <input
+        type="text"
+        class="form-control me-2"
+        placeholder="Nombre del Pokémon"
+        [(ngModel)]="pokemonName"
+        style="max-width: 300px;"
+      />
+      <button
+        type="button"
+        class="btn btn-primary"
+        (click)="getPokemonData()"
+      >
+        Ver Pokemon
+      </button>
+    </div>
+    <div class="col-6">
+      <button
+        type="button"
+        class="btn btn-success"
+        (click)="savePokemon()"
+      >
+        Guardar Pokemon
+      </button>
+    </div>
+  </div>
+  <div class="row">
+    <div *ngIf="pokemonData.name">
+      <div class="pokemon-card">    
+        <div
+        class="card-background"
+        [ngStyle]="{ 'background-color': dominantColor }"
+        ></div>
+        <!-- Imagen del Pokémon -->
+        <div class="card-image">
+          <img [src]="pokemonData.spriteUrl" [alt]="pokemonData.name" />
+        </div>     
+        <!-- Nombre del Pokémon -->
+        <h2 class="pokemon-name">{{ pokemonData.name | titlecase }}</h2>
+      
+        <!-- Tipo del Pokémon -->
+        <span class="pokemon-type">{{ pokemonData.type }}</span>
+      
+        <!-- Datos del Pokémon -->
+        <div class="stats">
+          <div class="stat">
+            <span>{{ pokemonData.weight }} hg</span>
+            <p>Peso</p>
+          </div>
+          <div class="stat">
+            <span>{{ pokemonData.height }} dm</span>
+            <p>Altura</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="container mt-4">
+      <div class="row align-items-center">
+        <!-- Columna 1 -->
+        <div class="col-md-7">
+          <div class="input-group">
+            <input type="text" class="form-control" [(ngModel)]="email" placeholder="Email" />
+            <button class="btn btn-outline-primary" type="button" (click)="validarEmail()">Validar</button>
+            <button class="btn btn-outline-success" type="button" (click)="compartirPorEmail()">Compartir por Email</button>
+          </div>
+        </div>
+    
+        <!-- Columna 2 -->
+        <div class="col-md-3 text-end">
+          <button class="btn btn-primary" (click)="getSavedPokemons()">Ver Pokemones</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="container mt-4">    
+      <!-- Tabla responsiva -->
+      <div *ngIf="savedPokemons.length > 0" class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Nombre</th>
+              <th scope="col">Peso (hectogramos)</th>
+              <th scope="col">Altura (decímetros)</th>
+              <th scope="col">Tipo</th>
+              <th scope="col">Imagen</th>
+              <th scope="col">Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let pokemon of savedPokemons">
+              <td>{{ pokemon._id }}</td>
+              <td>{{ pokemon.name }}</td>
+              <td>{{ pokemon.weight }}</td>
+              <td>{{ pokemon.height }}</td>
+              <td>{{ pokemon.type }}</td>
+              <td>
+                <img [src]="pokemon.spriteUrl" [alt]="pokemon.name" class="img-thumbnail" style="width: 50px; height: 50px;" />
+              </td>
+              <td><button class="btn btn-danger" (click)="deletePokemon(pokemon._id)">Eliminar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    
+      <!-- Mensaje si no hay registros -->
+      <div *ngIf="savedPokemons.length === 0" class="text-center text-muted">
+        No hay registros guardados.
+      </div>
+    </div>
+  </div>
+</div>

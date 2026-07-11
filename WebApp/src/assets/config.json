@@ -1,0 +1,4 @@
+{
+    "apiNode": "http://localhost:3000/api/",
+    "apiNet": "http://localhost:8080/api/"
+}  
