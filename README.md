@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ## • Ejecución Local e Independiente
 
 ### Base de datos MongoDB
@@ -421,3 +422,7 @@ Si quieres cambiar al entorno de aws utiliza el siguiente comando
 ```
 aws eks update-kubeconfig --region us-east-1 --name mi-cluster
 ```
+=======
+# jenkins
+practicing jenkins
+>>>>>>> aa809459c53479daa13033fa81a98ed05238cecf
