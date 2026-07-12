@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json angular.json tsconfig*.json ./
 
 # Instala deps
-RUN npm ci
+RUN npm install
 
 # Copia el resto del código y construye
 COPY . .
