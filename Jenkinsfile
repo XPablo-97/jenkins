@@ -21,11 +21,8 @@ pipeline {
         stage('3. Build Docker Image') {
             steps {
                 echo '==== Iniciando la construcción de la imagen de producción ===='
-                // El plugin nos da esta directiva para activar el entorno Docker automáticamente
-                withEnv(["PATH+DOCKER=${tool name: 'my_docker', type: 'org.jenkinsci.plugins.docker.commons.tools.DockerTool'}/bin"]) {
-                    dir('WebApp') {
-                        sh 'docker build -t mi-app-angular:latest .'
-                    }
+                dir('WebApp') {
+                    sh 'docker build -t mi-app-angular:latest .'
                 }
             }
         }
@@ -33,12 +30,10 @@ pipeline {
         stage('4. Test Image') {
             steps {
                 echo '==== Verificando que el contenedor levante correctamente ===='
-                withEnv(["PATH+DOCKER=${tool name: 'my_docker', type: 'org.jenkinsci.plugins.docker.commons.tools.DockerTool'}/bin"]) {
-                    sh 'docker run --name test-container -d -p 8081:80 mi-app-angular:latest'
-                    sh 'sleep 5'
-                    sh 'curl -I http://localhost:8081 || echo "Contenedor listo"'
-                    sh 'docker stop test-container && docker rm test-container'
-                }
+                sh 'docker run --name test-container -d -p 8081:80 mi-app-angular:latest'
+                sh 'sleep 5'
+                sh 'curl -I http://localhost:8081 || echo "Contenedor listo"'
+                sh 'docker stop test-container && docker rm test-container'
             }
         }
 
