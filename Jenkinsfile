@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        dockerTool 'my-docker'
+        dockerTool 'my_docker'
     }
     stages {
         stage('1. Checkout Code') {
