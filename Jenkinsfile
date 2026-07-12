@@ -1,9 +1,6 @@
 pipeline {
     agent any
 
-    tools {
-        dockerTool 'my_docker'
-    }
     stages {
         stage('1. Checkout Code') {
             steps {
@@ -16,7 +13,7 @@ pipeline {
             steps {
                 echo '==== Analizando la calidad y seguridad del Dockerfile ===='
                 dir('WebApp') {
-                    echo 'Dockerfile validado con éxito. Pasando a la siguiente etapa.'
+                    echo 'Dockerfile validado con éxito.'
                 }
             }
         }
@@ -24,8 +21,11 @@ pipeline {
         stage('3. Build Docker Image') {
             steps {
                 echo '==== Iniciando la construcción de la imagen de producción ===='
-                dir('WebApp') {
-                    sh 'docker build -t mi-app-angular:latest .'
+                // El plugin nos da esta directiva para activar el entorno Docker automáticamente
+                withEnv(["PATH+DOCKER=${tool name: 'my_docker', type: 'org.jenkinsci.plugins.docker.commons.tools.DockerTool'}/bin"]) {
+                    dir('WebApp') {
+                        sh 'docker build -t mi-app-angular:latest .'
+                    }
                 }
             }
         }
@@ -33,10 +33,12 @@ pipeline {
         stage('4. Test Image') {
             steps {
                 echo '==== Verificando que el contenedor levante correctamente ===='
-                sh 'docker run --name test-container -d -p 8081:80 mi-app-angular:latest'
-                sh 'sleep 5'
-                sh 'curl -I http://localhost:8081 || echo "Contenedor listo"'
-                sh 'docker stop test-container && docker rm test-container'
+                withEnv(["PATH+DOCKER=${tool name: 'my_docker', type: 'org.jenkinsci.plugins.docker.commons.tools.DockerTool'}/bin"]) {
+                    sh 'docker run --name test-container -d -p 8081:80 mi-app-angular:latest'
+                    sh 'sleep 5'
+                    sh 'curl -I http://localhost:8081 || echo "Contenedor listo"'
+                    sh 'docker stop test-container && docker rm test-container'
+                }
             }
         }
 
