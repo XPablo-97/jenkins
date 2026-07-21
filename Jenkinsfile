@@ -9,28 +9,41 @@ pipeline {
             }
         }
 
-        stage('2. Security Scan (Lint)') {
+        stage('2. Build Docker Image') {
             steps {
-                echo '==== Analizando la calidad y seguridad del Dockerfile ===='
+                echo '==== Construyendo la imagen (Sin subirla aún) ===='
                 dir('WebApp') {
-                    echo 'Dockerfile validado con éxito.'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        sh "docker build -t ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER} -t ${DOCKER_USER}/angular-app:latest ."
+                    }
                 }
             }
         }
 
-        stage('3. Build & Push Docker Image') {
+        stage('3. Security Scan (Trivy)') {
             steps {
-                echo '==== Construyendo y subiendo la imagen etiquetada a Docker Hub ===='
+                echo '==== Escaneando vulnerabilidades con Trivy ===='
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                    // Usamos la imagen oficial de Trivy para escanear nuestra aplicación
+                    // --exit-code 0: Solo muestra los fallos, pero no rompe el pipeline (ideal para empezar)
+                    // --severity HIGH,CRITICAL: Solo queremos ver los fallos graves o críticos
+                    sh """
+                    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image \
+                        --no-progress \
+                        --exit-code 0 \
+                        --severity HIGH,CRITICAL \
+                        ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}
+                    """
+                }
+            }
+        }
+
+        stage('4. Push to Docker Hub') {
+            steps {
+                echo '==== Subiendo la imagen segura a Docker Hub ===='
                 dir('WebApp') {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                        
-                        // 1. Login en Docker Hub con el token
                         sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
-                        
-                        // 2. Build con la etiqueta del número de build y como latest
-                        sh "docker build -t ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER} -t ${DOCKER_USER}/angular-app:latest ."
-                        
-                        // 3. Subida a Docker Hub
                         sh "docker push ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
                         sh "docker push ${DOCKER_USER}/angular-app:latest"
                     }
@@ -38,31 +51,27 @@ pipeline {
             }
         }
 
-        stage('4. Test Image') {
+        stage('5. Test Image') {
             steps {
                 echo '==== Verificando que el contenedor levante correctamente ===='
                 sh 'docker rm -f test-container || true'
-                
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                     sh "docker run --name test-container -d -p 8082:80 ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
                 }
-                
                 sh 'sleep 5'
                 sh 'curl -I http://localhost:8082 || echo "Contenedor de prueba listo"'
                 sh 'docker rm -f test-container'
             }
         }
 
-        stage('5. Deploy / Delivery') {
+        stage('6. Deploy / Delivery') {
             steps {
                 echo '==== ¡Pipeline Exitoso! Desplegando en Producción ===='
                 sh 'docker rm -f app-angular || true'
-                
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                     sh "docker run --name app-angular -d -p 8081:80 ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
                 }
-                
-                echo '✅ La aplicación se ha desplegado en el puerto 8081 usando la imagen subida a Docker Hub.'
+                echo '✅ La aplicación se ha desplegado en el puerto 8081.'
             }
         }
     }
