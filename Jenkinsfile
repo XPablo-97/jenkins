@@ -9,7 +9,24 @@ pipeline {
             }
         }
 
-        stage('2. Build Docker Image') {
+        stage('2. Code Quality Scan (SonarQube)') {
+            steps {
+                echo '==== Analizando calidad de código con SonarQube ===='
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                    docker run --rm \
+                        -v ${WORKSPACE}/WebApp:/usr/src \
+                        sonarsource/sonar-scanner-cli \
+                        -Dsonar.projectKey=angular-app \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://172.17.0.1:9000 \
+                        -Dsonar.token=${SONAR_TOKEN}
+                    '''
+                }
+            }
+        }
+
+        stage('3. Build Docker Image') {
             steps {
                 echo '==== Construyendo la imagen (Sin subirla aún) ===='
                 dir('WebApp') {
@@ -20,9 +37,9 @@ pipeline {
             }
         }
 
-        stage('3. Security Scan (Trivy)') {
+        stage('4. Security Scan (Trivy)') {
             steps {
-                echo '==== Escaneando vulnerabilidades con Trivy ===='
+                echo '==== Escaneando vulnerabilidades de contenedor con Trivy ===='
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                     sh """
                     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image \
@@ -35,7 +52,7 @@ pipeline {
             }
         }
 
-        stage('4. Push to Docker Hub') {
+        stage('5. Push to Docker Hub') {
             steps {
                 echo '==== Subiendo la imagen segura a Docker Hub ===='
                 dir('WebApp') {
@@ -48,7 +65,7 @@ pipeline {
             }
         }
 
-        stage('5. Test Image') {
+        stage('6. Test Image') {
             steps {
                 echo '==== Verificando que el contenedor levante correctamente ===='
                 sh 'docker rm -f test-container || true'
@@ -61,7 +78,7 @@ pipeline {
             }
         }
 
-        stage('6. Deploy / Delivery') {
+        stage('7. Deploy / Delivery') {
             steps {
                 echo '==== ¡Pipeline Exitoso! Desplegando en Producción ===='
                 sh 'docker rm -f app-angular || true'
@@ -85,7 +102,7 @@ pipeline {
             echo '✅ ¡Felicidades! El pipeline terminó con éxito rotundo.'
         }
         failure {
-            echo '❌ El pipeline falló. Revisa los logs por favor.'
+            echo '❌ El pipeline falló. Revisar los logs inmediatamente.'
         }
     }
 }
