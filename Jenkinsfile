@@ -15,12 +15,13 @@ pipeline {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
                     docker run --rm \
-                        -v ${WORKSPACE}/WebApp:/usr/src \
+                        -v ${WORKSPACE}:/usr/src \
                         sonarsource/sonar-scanner-cli \
                         -Dsonar.projectKey=angular-app \
-                        -Dsonar.sources=. \
+                        -Dsonar.sources=WebApp/src \
                         -Dsonar.host.url=http://172.17.0.1:9000 \
                         -Dsonar.login=${SONAR_TOKEN}
+                        -Dsonar.scm.disabled=true
                     '''
                 }
             }
