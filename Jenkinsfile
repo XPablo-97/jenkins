@@ -24,9 +24,6 @@ pipeline {
             steps {
                 echo '==== Escaneando vulnerabilidades con Trivy ===='
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                    // Usamos la imagen oficial de Trivy para escanear nuestra aplicación
-                    // --exit-code 0: Solo muestra los fallos, pero no rompe el pipeline (ideal para empezar)
-                    // --severity HIGH,CRITICAL: Solo queremos ver los fallos graves o críticos
                     sh """
                     docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image \
                         --no-progress \
@@ -78,7 +75,11 @@ pipeline {
 
     post {
         always {
-            echo '==== Limpiando el espacio de trabajo ===='
+            echo '==== Limpiando espacio en disco de Docker ===='
+            withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                sh "docker rmi ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER} || true"
+            }
+            sh 'docker image prune -f'
         }
         success {
             echo '✅ ¡Felicidades! El pipeline terminó con éxito rotundo.'
