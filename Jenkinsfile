@@ -18,11 +18,22 @@ pipeline {
             }
         }
 
-        stage('3. Build Docker Image') {
+        stage('3. Build & Push Docker Image') {
             steps {
-                echo '==== Iniciando la construcción de la imagen de producción ===='
+                echo '==== Construyendo y subiendo la imagen etiquetada a Docker Hub ===='
                 dir('WebApp') {
-                    sh 'docker build -t mi-app-angular:latest .'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                        
+                        // 1. Login en Docker Hub con el token
+                        sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                        
+                        // 2. Build con la etiqueta del número de build y como latest
+                        sh "docker build -t ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER} -t ${DOCKER_USER}/angular-app:latest ."
+                        
+                        // 3. Subida a Docker Hub
+                        sh "docker push ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
+                        sh "docker push ${DOCKER_USER}/angular-app:latest"
+                    }
                 }
             }
         }
@@ -30,34 +41,28 @@ pipeline {
         stage('4. Test Image') {
             steps {
                 echo '==== Verificando que el contenedor levante correctamente ===='
-                // 1. Limpieza preventiva por si un test falló anteriormente
                 sh 'docker rm -f test-container || true'
                 
-                // 2. Levantamos la app en un puerto interno distinto (8082) para no chocar con producción
-                sh 'docker run --name test-container -d -p 8082:80 mi-app-angular:latest'
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                    sh "docker run --name test-container -d -p 8082:80 ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
+                }
+                
                 sh 'sleep 5'
-                
-                // 3. Probamos que responda bien
                 sh 'curl -I http://localhost:8082 || echo "Contenedor de prueba listo"'
-                
-                // 4. Destruimos el entorno de pruebas para no dejar basura
                 sh 'docker rm -f test-container'
             }
         }
 
         stage('5. Deploy / Delivery') {
             steps {
-                echo '==== ¡Pipeline Exitoso! Desplegando en Servidor Web ===='
-                
-                // 1. Apagamos y borramos la versión VIEJA de la app que esté corriendo
+                echo '==== ¡Pipeline Exitoso! Desplegando en Producción ===='
                 sh 'docker rm -f app-angular || true'
-                // Opcional: También limpiamos si quedó ocupando el 8081 por el error de antes
-                sh 'docker rm -f test-container || true' 
                 
-                // 2. Encendemos la versión NUEVA de forma definitiva en el puerto oficial (8081)
-                sh 'docker run --name app-angular -d -p 8081:80 mi-app-angular:latest'
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
+                    sh "docker run --name app-angular -d -p 8081:80 ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
+                }
                 
-                echo '✅ La aplicación v1.0 se ha actualizado en producción y está visible en el puerto 8081.'
+                echo '✅ La aplicación se ha desplegado en el puerto 8081 usando la imagen subida a Docker Hub.'
             }
         }
     }
