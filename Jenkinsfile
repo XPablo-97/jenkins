@@ -12,18 +12,21 @@ pipeline {
         stage('2. Code Quality Scan (SonarQube)') {
             steps {
                 echo '==== Analizando calidad de código con SonarQube ===='
-                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
-                    sh '''
-                    docker run --rm \
-                        -v ${WORKSPACE}:/usr/src \
-                        sonarsource/sonar-scanner-cli \
-                        -Dsonar.projectKey=angular-app \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://172.17.0.1:9000 \
-                        -Dsonar.login=${SONAR_TOKEN} \
-                        -Dsonar.scm.disabled=true \
-                        -Dsonar.exclusions=**/node_modules/**,**/dist/**
-                    '''
+                dir('WebApp') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                        docker run --rm \
+                            --user root \
+                            -v ${WORKSPACE}/WebApp:/usr/src \
+                            sonarsource/sonar-scanner-cli \
+                            -Dsonar.projectKey=angular-app \
+                            -Dsonar.sources=. \
+                            -Dsonar.host.url=http://172.17.0.1:9000 \
+                            -Dsonar.login=${SONAR_TOKEN} \
+                            -Dsonar.scm.disabled=true \
+                            -Dsonar.exclusions=**/node_modules/**,**/dist/**
+                        '''
+                    }
                 }
             }
         }
