@@ -85,7 +85,7 @@ pipeline {
             echo '✅ ¡Felicidades! El pipeline terminó con éxito rotundo.'
         }
         failure {
-            echo '❌ El pipeline falló. Revisar los logs inmediatamente.'
+            echo '❌ El pipeline falló. Revisa los logs por favor.'
         }
     }
 }
