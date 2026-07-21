@@ -18,11 +18,10 @@ pipeline {
                         -v ${WORKSPACE}/WebApp:/usr/src \
                         sonarsource/sonar-scanner-cli \
                         -Dsonar.projectKey=angular-app \
-                        -Dsonar.sources=. \
+                        -Dsonar.sources=src \
                         -Dsonar.host.url=http://172.17.0.1:9000 \
                         -Dsonar.login=${SONAR_TOKEN} \
-                        -Dsonar.scm.disabled=true \
-                        -Dsonar.exclusions=**/node_modules/**,**/dist/**
+                        -Dsonar.scm.disabled=true
                     '''
                 }
             }
