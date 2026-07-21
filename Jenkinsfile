@@ -15,16 +15,26 @@ pipeline {
                 dir('WebApp') {
                     withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
-                        docker run --rm \
-                            --user root \
-                            -v ${WORKSPACE}/WebApp:/usr/src \
-                            sonarsource/sonar-scanner-cli \
+                        # 1. Creamos un Dockerfile temporal que copia todo nuestro código
+                        cat <<EOF > Dockerfile.sonar
+                        FROM sonarsource/sonar-scanner-cli
+                        COPY . /usr/src
+                        EOF
+                        
+                        # 2. Construimos la imagen (super rápido, solo copia los archivos)
+                        docker build -t temp-sonar-scanner -f Dockerfile.sonar .
+                        
+                        # 3. Ejecutamos el escáner desde nuestra nueva imagen SIN volúmenes
+                        docker run --rm temp-sonar-scanner \
                             -Dsonar.projectKey=angular-app \
                             -Dsonar.sources=. \
                             -Dsonar.host.url=http://172.17.0.1:9000 \
                             -Dsonar.login=${SONAR_TOKEN} \
                             -Dsonar.scm.disabled=true \
                             -Dsonar.exclusions=**/node_modules/**,**/dist/**
+                            
+                        # 4. Limpiamos la imagen temporal para no ocupar espacio
+                        docker rmi temp-sonar-scanner
                         '''
                     }
                 }
