@@ -66,7 +66,7 @@ pipeline {
                 echo '==== ¡Pipeline Exitoso! Desplegando en Producción ===='
                 sh 'docker rm -f app-angular || true'
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
-                    sh "docker run --name app-angular -d -p 8081:80 ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
+                    sh "docker run --name app-angular --restart always -d -p 8081:80 ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
                 }
                 echo '✅ La aplicación se ha desplegado en el puerto 8081.'
             }
