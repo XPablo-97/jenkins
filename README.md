@@ -22,7 +22,7 @@ install-package AWSSDK.SimpleEmail
 
 Si estas en VS Community unicamente debes presionar el boton de ```iniciar``` si utilizas VS Code ejecuta el comando ```dotnet build```
 
-**Nota**: En caso de querer realizar este proyecto con Python, utiliza Boto3
+**Nota**: En caso de querer realizar este proyecto con Python,  se debe utilizar Boto3
 
 También se debe incluir las configuraciones necesarias en appsetting.json
 ```json
