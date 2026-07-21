@@ -20,8 +20,9 @@ pipeline {
                         -Dsonar.projectKey=angular-app \
                         -Dsonar.sources=. \
                         -Dsonar.host.url=http://172.17.0.1:9000 \
-                        -Dsonar.login=${SONAR_TOKEN}
-                        -Dsonar.scm.disabled=true
+                        -Dsonar.login=${SONAR_TOKEN} \
+                        -Dsonar.scm.disabled=true \
+                        -Dsonar.exclusions=**/node_modules/**,**/dist/**
                     '''
                 }
             }
