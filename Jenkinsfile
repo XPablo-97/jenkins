@@ -70,7 +70,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
                     sh 'docker rm -f test-container || true'
                     sh "docker run --name test-container -d -p 8082:80 ${DOCKER_USER}/angular-app:build-${BUILD_NUMBER}"
-                    sh 'curl -sf --retry 5 --retry-connrefused --retry-delay 2 http://localhost:8082'
+                    sh 'curl -sf --retry 5 --retry-connrefused --retry-delay 2 http://172.17.0.1:8082'
                     sh 'docker rm -f test-container'
                 }
             }
