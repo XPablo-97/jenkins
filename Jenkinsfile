@@ -92,7 +92,7 @@ pipeline {
 
         stage('7. Deploy / Delivery') {
             when {
-                branch 'main'
+                expression { env.GIT_BRANCH == 'origin/main' }
             }
             steps {
                 echo '==== ¡Pipeline Exitoso! Desplegando en Producción ===='
