@@ -90,15 +90,10 @@ pipeline {
             }
         }
 
-        stage('7. Approval') {
-            steps {
-                timeout(time: 30, unit: 'MINUTES') {
-                    input message: "¿Desplegar build-${BUILD_NUMBER} en producción?", ok: 'Desplegar'
-                }
+        stage('7. Deploy / Delivery') {
+            when {
+                branch 'main'
             }
-        }
-
-        stage('8. Deploy / Delivery') {
             steps {
                 echo '==== ¡Pipeline Exitoso! Desplegando en Producción ===='
                 withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', passwordVariable: 'DOCKER_PASS', usernameVariable: 'DOCKER_USER')]) {
@@ -108,7 +103,6 @@ pipeline {
                 echo 'La aplicación se ha desplegado en el puerto 8081.'
             }
         }
-    }
 
     post {
         always {
