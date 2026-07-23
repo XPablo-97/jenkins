@@ -103,6 +103,7 @@ pipeline {
                 echo 'La aplicación se ha desplegado en el puerto 8081.'
             }
         }
+    }
 
     post {
         always {
