@@ -114,7 +114,7 @@ pipeline {
             sh 'docker image prune -f'
         }
         success {
-            echo '¡Felicidades! El pipeline terminó con éxito rotundo.'
+            echo 'Felicidades!!! El pipeline terminó con éxito rotundo.'
         }
         failure {
             echo 'El pipeline falló. Revisar los logs inmediatamente.'
