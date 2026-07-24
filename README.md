@@ -5,7 +5,7 @@
 Para poder guardar los datos, utilizamos MongoDB. El cual recibira operaciones de ```GET```, ```POST``` y  ```DELETE```.
 Esta imagen es descargada de Docker Hub: ```https://hub.docker.com/_/mongo```
 
-Para poder ejecutar el contenedor y hacer pruebas con el api de Node, ejecuta el siguiente comando de Docker:
+Para poder ejecutar el contenedor y hacer pruebas con el api de Node, hay que ejecutar ee Docker:
 
 ```
  docker run --name mongodb -dp 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=adminpassword -e MONGO_INITDB_DATABASE=blockstellart -v mongo-data:/data/db mongo:latest
