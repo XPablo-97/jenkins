@@ -77,6 +77,9 @@ pipeline {
         }
 
         stage('6. Push to ECR') {
+            when {
+                expression { env.GIT_BRANCH == 'origin/main' }
+            }
             steps {
                 echo '==== Subiendo la imagen probada a ECR ===='
                 sh """
