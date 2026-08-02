@@ -104,7 +104,7 @@ pipeline {
         }
     }
 
-    post {
+        post {
         always {
             echo '==== Limpiando espacio en disco de Docker ===='
             sh "docker rmi ${ECR_REPO}:build-${BUILD_NUMBER} || true"
@@ -112,9 +112,26 @@ pipeline {
         }
         success {
             echo '¡Felicidades! El pipeline terminó con éxito rotundo.'
+            withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                sh """
+                curl -s -X POST \
+                    -H "Authorization: token ${GITHUB_TOKEN}" \
+                    -H "Accept: application/vnd.github+json" \
+                    https://api.github.com/repos/XPablo-97/jenkins/statuses/${GIT_COMMIT} \
+                    -d '{"state":"success","context":"angular-app-test","target_url":"${BUILD_URL}","description":"Jenkins pipeline passed"}'
+                """
+            }
         }
         failure {
             echo 'El pipeline falló. Revisar los logs inmediatamente.'
+            withCredentials([string(credentialsId: 'github-token', variable: 'GITHUB_TOKEN')]) {
+                sh """
+                curl -s -X POST \
+                    -H "Authorization: token ${GITHUB_TOKEN}" \
+                    -H "Accept: application/vnd.github+json" \
+                    https://api.github.com/repos/XPablo-97/jenkins/statuses/${GIT_COMMIT} \
+                    -d '{"state":"failure","context":"angular-app-test","target_url":"${BUILD_URL}","description":"Jenkins pipeline failed"}'
+                """
+            }
         }
     }
-}
